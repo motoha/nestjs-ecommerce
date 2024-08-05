@@ -1,0 +1,239 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  BUYER
+  REALTOR
+  ADMIN
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  CONDO
+}
+ 
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  phone         String
+  email         String    @unique
+  password      String
+  type          UserType  @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  firstName     String?
+  lastName      String?
+  address       String?
+  Orders        Order[]
+  ShoppingCart  ShoppingCart?
+  Reviews       ReviewEcom[]
+  Addresses     Address[]
+}
+model ProductImage {
+  image_id    Int      @id @default(autoincrement())
+  product_id  Int
+  image_url   String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  Product     ProductEcom @relation(fields: [product_id], references: [product_id])
+}
+model ProductEcom {
+  product_id    Int        @id @default(autoincrement())
+  name          String
+  description   String
+  price         Float
+  stock_quantity Int
+  category_id   Int
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  Category      Category   @relation(fields: [category_id], references: [category_id])
+  OrderItems    OrderItem[]
+  CartItems     CartItem[]
+  Reviews       ReviewEcom[]
+  
+
+  ProductImage ProductImage[]
+}
+
+model Category {
+  category_id  Int        @id @default(autoincrement())
+  name         String
+  description  String
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  Products     ProductEcom[]
+}
+
+model Order {
+  order_id     Int        @id @default(autoincrement())
+  user_id      Int
+  order_date   DateTime
+  status       String
+  total_amount Float
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  User         User       @relation(fields: [user_id], references: [id])
+  OrderItems   OrderItem[]
+  Payments     Payment[]
+}
+
+model OrderItem {
+  order_item_id Int       @id @default(autoincrement())
+  order_id      Int
+  product_id    Int
+  quantity      Int
+  price         Float
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  Order         Order     @relation(fields: [order_id], references: [order_id])
+  Product       ProductEcom   @relation(fields: [product_id], references: [product_id])
+}
+
+model ShoppingCart {
+  cart_id       Int       @id @default(autoincrement())
+  user_id       Int @unique
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  User          User      @relation(fields: [user_id], references: [id])
+  CartItems     CartItem[]
+}
+
+model CartItem {
+  cart_item_id  Int       @id @default(autoincrement())
+  cart_id       Int
+  product_id    Int
+  quantity      Int
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  ShoppingCart  ShoppingCart @relation(fields: [cart_id], references: [cart_id])
+  Product       ProductEcom   @relation(fields: [product_id], references: [product_id])
+}
+
+model ReviewEcom{
+  review_id     Int       @id @default(autoincrement())
+  user_id       Int
+  product_id    Int
+  rating        Int
+  comment       String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  User          User      @relation(fields: [user_id], references: [id])
+  Product       ProductEcom   @relation(fields: [product_id], references: [product_id])
+}
+
+model Payment {
+  payment_id    Int       @id @default(autoincrement())
+  order_id      Int
+  payment_date  DateTime
+  amount        Float
+  payment_method String
+  status        String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  Order         Order     @relation(fields: [order_id], references: [order_id])
+}
+
+model Address {
+  address_id    Int       @id @default(autoincrement())
+  user_id       Int
+  address_line1 String
+  address_line2 String?
+  city          String
+  state         String
+  postal_code   String
+  country       String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  User          User      @relation(fields: [user_id], references: [id])
+}
+model Property {
+  id Int @id @default(autoincrement())
+  type PropertyType
+  area Float
+  price Float
+  bedrooms Int
+  bathrooms Int
+  city String
+  address String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  images Image[]
+  realtor_id Int
+  // realtor User @relation(fields: [realtor_id], references: [id])
+  messages Message[]
+}
+
+model Image {
+  id Int @id @default(autoincrement())
+  url String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  property_id Int
+  property Property @relation(fields: [property_id], references: [id])
+}
+
+model Message {
+  id Int @id @default(autoincrement())
+  message String
+  property_id Int
+  property Property @relation(fields: [property_id], references: [id])
+  realtor_id Int
+  // realtor User @relation("realtor_messages", fields: [realtor_id], references: [id])
+  buyer_id Int
+  // buyer User @relation("buyer_messages", fields: [buyer_id], references: [id])
+}
+
+// new
+//npx prisma migrate dev --name init
+model Product {
+  id Int @default(autoincrement()) @id
+  name String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  price Float
+  sale Boolean @default(false)
+  availibility Availibility
+  reviews Review[]
+  tags Tag[]
+  description Description?
+  image String
+}
+
+model Description {
+  id Int @default(autoincrement()) @id
+  content String
+  product Product @relation(fields: [productId], references: [id])
+  productId Int @unique
+}
+
+model Review {
+  id Int @default(autoincrement()) @id
+  title String
+  content String
+  rating Int
+  product Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+
+model Tag {
+  id Int @default(autoincrement()) @id
+  content String
+  products Product[]
+}
+
+enum Availibility {
+  IN_STORE
+  ONLINE
+}
+
+
+
