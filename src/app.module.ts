@@ -9,12 +9,18 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ProductEcomModule } from './product-ecom/productEcom.module';
  
 import { CategoriesModule } from './category/category.module';
+import { CartService } from './cart/cart.service';
+import { CartController } from './cart/cart.controller';
+import { CartModule } from './cart/cart.module';
+import { OrderController } from './order/order.controller';
+import { OrderService } from './order/order.service';
+import { OrderModule } from './order/order.module';
 @Module({
 
-  imports: [UserModule, PropertyModule, MessageModule,CategoriesModule,  ProductModule,ProductEcomModule, MulterModule.register({
+  imports: [UserModule, PropertyModule,OrderModule, MessageModule,CategoriesModule, CartModule, ProductModule,ProductEcomModule, MulterModule.register({
     dest: './uploads', // directory to save uploaded files
   }),],
-  controllers: [AppController ],
-  providers: [  ],
+  controllers: [AppController   ],
+  providers: [   ],
 })
 export class AppModule {}

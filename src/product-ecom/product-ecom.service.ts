@@ -122,4 +122,37 @@ export class ProductEcomService {
           ProductImage: productImages,
         };
       }
+
+      async updateProductWithImages(productId: number, updateProductDto: UpdateProductEcomDto, files: Express.Multer.File[]): Promise<any> {
+        // Update the product details
+        const product = await this.databaseService.productEcom.update({
+          where: { product_id: productId },
+          data: updateProductDto,
+        });
+    
+        // Handle product images
+        const productImages: Prisma.ProductImageCreateInput[] = files.map(file => ({
+          image_url: `/uploads/${file.filename}`,
+          Product: {
+            connect: {
+              product_id: product.product_id,
+            },
+          },
+        }));
+    
+        // Delete existing images if needed
+        await this.databaseService.productImage.deleteMany({
+          where: { product_id: product.product_id },
+        });
+    
+        // Create new images
+        const createdImages = await Promise.all(
+          productImages.map(image => this.databaseService.productImage.create({ data: image })),
+        );
+    
+        return {
+          ...product,
+          ProductImage: createdImages,
+        };
+      }
 }

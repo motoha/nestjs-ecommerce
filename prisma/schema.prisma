@@ -77,7 +77,7 @@ model Order {
   order_id     Int        @id @default(autoincrement())
   user_id      Int
   order_date   DateTime
-  status       String
+  status       OrderStatus
   total_amount Float
   created_at   DateTime   @default(now())
   updated_at   DateTime   @updatedAt
@@ -235,5 +235,9 @@ enum Availibility {
   ONLINE
 }
 
-
+enum OrderStatus {
+  PAID
+  PENDING
+  FAILED
+}
 
