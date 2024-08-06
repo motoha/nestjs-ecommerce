@@ -100,9 +100,10 @@ model Category {
 
 model Order {
   order_id     Int        @id @default(autoincrement())
-  user_id      Int
+  user_id      Int        @default(1)
   order_date   DateTime
   status       OrderStatus
+  status_id    Int?
   total_amount Float
   created_at   DateTime   @default(now())
   updated_at   DateTime   @updatedAt
@@ -110,6 +111,7 @@ model Order {
   OrderItems   OrderItem[]
   Payments     Payment[]
 }
+ 
 
 model OrderItem {
   order_item_id Int       @id @default(autoincrement())
@@ -261,8 +263,10 @@ enum Availibility {
 }
 
 enum OrderStatus {
-  PAID
   PENDING
-  FAILED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 

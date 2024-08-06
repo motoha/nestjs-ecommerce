@@ -3,6 +3,7 @@ import { CreateOrderItemDto } from './dto/CreateOrderItemDto';
 import { CreateOrderDto } from './dto/CreateOrderDto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateOrderDto } from './dto/UpdateOrderDto';
+import { Order, OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrderService {
@@ -84,6 +85,55 @@ export class OrderService {
         order_date,
         status,
         total_amount,
+      },
+    });
+  }
+
+  async getOrdersByUserId(userId: number): Promise<Order[]> {
+    return this.prisma.order.findMany({
+      where: { user_id: userId },
+      include: {
+        OrderItems: true,
+        Payments: true,
+      },
+    });
+  }
+
+  async getOrderById(orderId: number): Promise<Order> {
+    const order = await this.prisma.order.findUnique({
+      where: { order_id: orderId },
+      include: {
+        OrderItems: true,
+        Payments: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found`);
+    }
+
+    return order;
+  }
+  async getOrdersByStatus(status: OrderStatus): Promise<Order[]> {
+    return this.prisma.order.findMany({
+      where: { status },
+      include: {
+        OrderItems: true,
+        Payments: true,
+      },
+    });
+  }
+
+  async findOrdersByStatusId(statusId: number): Promise<Order[]> {
+    return this.prisma.order.findMany({
+      where: {
+        status_id: statusId,
+      },
+      include: {
+        User: true,
+   
+        OrderItems: true,
+        Payments: true,
       },
     });
   }
