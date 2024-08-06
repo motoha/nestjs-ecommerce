@@ -21,6 +21,24 @@ enum PropertyType {
   CONDO
 }
  
+// model User {
+//   id            Int       @id @default(autoincrement())
+//   name          String
+//   phone         String
+//   email         String    @unique
+//   password      String
+//   type          UserType  @default(BUYER)
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @updatedAt
+//   firstName     String?
+//   lastName      String?
+//   address       String?
+//   Orders        Order[]
+//   ShoppingCart  ShoppingCart?
+//   Reviews       ReviewEcom[]
+//   Addresses     Address[]
+// }
+ 
 model User {
   id            Int       @id @default(autoincrement())
   name          String
@@ -33,6 +51,13 @@ model User {
   firstName     String?
   lastName      String?
   address       String?
+  address_line1 String?   // Add this field
+  address_line2 String?   // Add this field
+  city          String?   // Add this field
+  state         String?   // Add this field
+  postal_code   String?   // Add this field
+  country       String?   // Add this field
+  profilePict   String? 
   Orders        Order[]
   ShoppingCart  ShoppingCart?
   Reviews       ReviewEcom[]
