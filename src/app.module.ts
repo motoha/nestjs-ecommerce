@@ -21,6 +21,6 @@ import { OrderModule } from './order/order.module';
     dest: './uploads', // directory to save uploaded files
   }),],
   controllers: [AppController   ],
-  providers: [   ],
+ 
 })
 export class AppModule {}

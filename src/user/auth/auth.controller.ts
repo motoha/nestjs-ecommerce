@@ -18,6 +18,12 @@ export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthGuard)
+  @Get('/users')
+  async findAll() {
+    return this.authService.findAll();
+  }
+
   @Post('/register')
   async register(@Body() body: RegisterDto) {
     return await this.authService.addUser({ ...body, type: UserType.BUYER });
@@ -133,4 +139,9 @@ export class AuthController {
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  
+
+  
+  
 }

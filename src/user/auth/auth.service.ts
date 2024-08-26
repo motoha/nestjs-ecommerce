@@ -184,4 +184,29 @@ export class AuthService {
       throw new Error(`Error updating user: ${error.message}`);
     }
   }
+
+  async findAll() {
+    return this.prismaService.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        type: true,
+        firstName: true,
+        lastName: true,
+        address: true,
+        address_line1: true,
+        address_line2: true,
+        city: true,
+        state: true,
+        postal_code: true,
+        country: true,
+        profilePict: true,
+        createdAt: true,
+        updatedAt: true,
+        
+      },
+    });
+  }
+
 }
