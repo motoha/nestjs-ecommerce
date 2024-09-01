@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseInterceptors, Put,Req, UseGuards,UsePipes, ValidationPipe, HttpStatus, HttpException, Param, NotFoundException, UploadedFile  } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseInterceptors, Put,Req, UseGuards,UsePipes, ValidationPipe, HttpStatus, HttpException, Param, NotFoundException, UploadedFile, HttpCode  } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterAdminDto, RegisterDto } from '../dtos/auth.dto';
@@ -18,7 +18,7 @@ export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get('/users')
   async findAll() {
     return this.authService.findAll();
@@ -39,6 +39,19 @@ export class AuthController {
   @Post('/login')
   async login(@Body() body: LoginDto) {
     return await this.authService.login(body);
+  }
+  
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refreshTokens(@Body() body: { userId: number; refreshToken: string }): Promise<ITokens> {
+    return this.authService.refreshTokens(body.userId, body.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Body() body: { userId: number }): Promise<{ message: string }> {
+    await this.authService.logout(body.userId);
+    return { message: 'Logged out successfully' };
   }
 
   @UseGuards(AuthGuard)

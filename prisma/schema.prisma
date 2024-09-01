@@ -62,6 +62,7 @@ model User {
   ShoppingCart  ShoppingCart?
   Reviews       ReviewEcom[]
   Addresses     Address[]
+  refreshToken String?
 }
 model ProductImage {
   image_id    Int      @id @default(autoincrement())

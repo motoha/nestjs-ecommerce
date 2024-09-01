@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
@@ -15,13 +15,10 @@ import { UpdateUserDto } from '../dtos/UpdateUserDto';
 //   type: UserType;
 // }
 
-interface ILogin {
-  email: string;
-  password: string;
-}
+
 @Injectable()
 export class AuthService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { this.checkEnvironmentVariables();}
   private generateToken(id: number, email: string, type: string) {
     return jwt.sign({ user: id, email, type }, process.env.JWT_SECRET_KEY);
   }
@@ -41,8 +38,118 @@ export class AuthService {
     });
     return user;
   }
+  private checkEnvironmentVariables() {
+    if (!process.env.JWT_SECRET_KEY) {
+      throw new Error('JWT_ACCESS_SECRET is not defined in the environment variables');
+    }
+    if (!process.env.JWT_REFRESH_SECRET) {
+      throw new Error('JWT_REFRESH_SECRET is not defined in the environment variables');
+    }
+  }
 
-  async login(body: ILogin) {
+  private generateAccessToken(id: number, email: string, type: string): string {
+    const secret = process.env.JWT_SECRET_KEY;
+    if (!secret) {
+      throw new Error('JWT_ACCESS_SECRET is not defined');
+    }
+    return jwt.sign(
+      { user: id, email, type },
+      secret,
+      { expiresIn: '15m' }
+    );
+  }
+  private generateRefreshToken(id: number): string {
+    const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret) {
+      throw new Error('JWT_REFRESH_SECRET is not defined');
+    }
+    return jwt.sign(
+      { user: id },
+      secret,
+      { expiresIn: '7d' }
+    );
+  }
+  private async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { refreshToken: hashedRefreshToken },
+    });
+  }
+
+  private generateTokens(id: number, email: string, type: string): ITokens {
+    const accessToken = this.generateAccessToken(id, email, type);
+    const refreshToken = this.generateRefreshToken(id);
+    return { accessToken, refreshToken };
+  }
+  async refreshTokens(userId: number, refreshToken: string): Promise<ITokens> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.refreshToken) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'Access Denied',
+          message: 'Invalid refresh token',
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+    if (!refreshTokenMatches) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'Access Denied',
+          message: 'Invalid refresh token',
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    const tokens = this.generateTokens(user.id, user.email, user.type);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+
+  async login(body: ILogin): Promise<{ statusCode: number; user: any; tokens: ITokens }> {
+    const { email, password } = body;
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'Invalid credentials',
+          message: 'Invalid email or password',
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    const { id, type } = user;
+    const tokens = this.generateTokens(id, email, type);
+    await this.updateRefreshToken(id, tokens.refreshToken);
+
+    const { password: _, refreshToken: __, ...userWithoutSensitiveInfo } = user;
+
+    return {
+      statusCode: HttpStatus.OK,
+      user: userWithoutSensitiveInfo,
+      tokens: tokens,
+    };
+  }
+
+
+ 
+  async loginx(body: ILogin) {
     const { email, password } = body;
     const isUserFound = await this.prismaService.user.findUnique({
       where: { email },
@@ -51,14 +158,27 @@ export class AuthService {
       !isUserFound ||
       !(await bcrypt.compare(password, isUserFound.password))
     ) {
-      throw new ApiError(HttpStatus.UNAUTHORIZED, 'Invalid credentials');
+      // throw new ApiError(HttpStatus.UNAUTHORIZED, 'Invalid credentials');
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'Invalid credentials',
+          message: 'No user found with this email',
+        },
+        HttpStatus.UNAUTHORIZED
+      );
     }
 
     const { id, type } = isUserFound;
     const token = this.generateToken(id, email, type);
-    return { user: isUserFound, token };
+    return {  statusCode: HttpStatus.OK,user: isUserFound, token };
   }
-
+  async logout(userId: number): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+  }
   async createUser(body: IUser, profilePict: string): Promise<Omit<User, 'password'>> {
     const { email, password, ...userData } = body;
 
