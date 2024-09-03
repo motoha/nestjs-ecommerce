@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductEcomDto } from './dto/product-ecom';
 import { UpdateProductEcomDto } from './dto/update-product-ecom.dto';
 import { Prisma, ProductEcom, ProductImage } from '@prisma/client';
- 
+import * as fs from 'fs';
+import * as path from 'path';
 // interface IProductEcom {
    
 //     name: string;
@@ -59,7 +60,11 @@ export class ProductEcomService {
         };
       }
       findAll() {
-        return  this.databaseService.productEcom.findMany();
+        return  this.databaseService.productEcom.findMany({
+          include: {
+            ProductImage: true, // Include related ProductImage records
+          },
+        });
       }
     
       findOne(product_id: number) {
@@ -154,5 +159,36 @@ export class ProductEcomService {
           ...product,
           ProductImage: createdImages,
         };
+      }
+
+      async deleteProductImage(productId: number, imageId: number): Promise<void> {
+        // 1. Find the image in the database
+        const image = await this.databaseService.productImage.findFirst({
+          where: { 
+            image_id: imageId,
+            Product: {
+              product_id: productId
+            }
+          },
+        });
+    
+        if (!image) {
+          throw new NotFoundException(`Image with ID ${imageId} not found for product ${productId}`);
+        }
+    
+        // 2. Delete the image file from the filesystem
+        const imagePath = path.join(process.cwd(), image.image_url);
+        try {
+          fs.unlinkSync(imagePath);
+        } catch (error) {
+          console.error(`Failed to delete image file: ${error.message}`);
+          // Optionally, you can choose to throw an error here if file deletion is crucial
+          // throw new InternalServerErrorException('Failed to delete image file');
+        }
+    
+        // 3. Delete the image record from the database
+        await this.databaseService.productImage.delete({
+          where: { image_id: imageId },
+        });
       }
 }

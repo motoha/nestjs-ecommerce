@@ -13,6 +13,7 @@ import {
     ParseIntPipe,
     UploadedFiles,
     Put,
+    NotFoundException,
     
   } from '@nestjs/common';
 import { ProductEcomService } from './product-ecom.service';
@@ -86,6 +87,22 @@ export class ProductEcomController {
       },
     };
     return this.productEcomService.createProductImage(productImageData);
+  }
+
+  @Delete(':productId/images-delete/:imageId')
+  async deleteProductImage(
+    @Param('productId', ParseIntPipe) productId: number,
+    @Param('imageId', ParseIntPipe) imageId: number,
+  ) {
+    try {
+      await this.productEcomService.deleteProductImage(productId, imageId);
+      return { message: 'Image deleted successfully' };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new NotFoundException('Failed to delete image');
+    }
   }
 
   @Post('/images')

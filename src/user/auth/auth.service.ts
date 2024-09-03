@@ -55,7 +55,7 @@ export class AuthService {
     return jwt.sign(
       { user: id, email, type },
       secret,
-      { expiresIn: '15m' }
+      { expiresIn: '1d' }
     );
   }
   private generateRefreshToken(id: number): string {

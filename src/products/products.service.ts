@@ -52,7 +52,9 @@ export class ProductsService {
   
   
     async findAll() {
-      return this.databaseService.product.findMany({});
+      return this.databaseService.product.findMany({
+      
+      });
     }
   
     async findOne(id: number) {
