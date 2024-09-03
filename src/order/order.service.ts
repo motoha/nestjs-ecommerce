@@ -11,10 +11,10 @@ export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<any> {
-    const { user_id, order_date, status, total_amount, order_items } = createOrderDto;
+    const { user_id, order_date, status, total_amount, orderItems } = createOrderDto;
 
     // Validate that all product_ids exist
-    for (const item of order_items) {
+    for (const item of orderItems) {
       const product = await this.prisma.productEcom.findUnique({
         where: { product_id: item.product_id },
       });
@@ -36,7 +36,7 @@ export class OrderService {
 
     // Create the order items
     const createdOrderItems = await Promise.all(
-      order_items.map((item: CreateOrderItemDto) =>
+      orderItems.map((item: CreateOrderItemDto) =>
         this.prisma.orderItem.create({
           data: {
             order_id: order.order_id,
@@ -132,6 +132,8 @@ export class OrderService {
       include: {
         User: true,
    
+
+
         OrderItems: true,
         Payments: true,
       },
@@ -192,6 +194,60 @@ export class OrderService {
 //       },
 //     },
 //   });
+
+
+async createOrderx(createOrderDto: CreateOrderDto) {
+  const { user_id, order_date, status, status_id, total_amount, orderItems, payment } = createOrderDto;
+
+  // Validate product IDs
+  const productIds = orderItems.map(item => item.product_id);
+  const products = await this.prisma.productEcom.findMany({
+    where: {
+      product_id: {
+        in: productIds,
+      },
+    },
+  });
+
+  if (products.length !== productIds.length) {
+    const invalidProductIds = productIds.filter(id => !products.some(product => product.product_id === id));
+    throw new NotFoundException(`Invalid product IDs: ${invalidProductIds.join(', ')}`);
+  }
+
+  const order = await this.prisma.order.create({
+    data: {
+      user_id,
+      order_date,
+      status,
+      status_id,
+      total_amount,
+      OrderItems: {
+        create: orderItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      },
+    },
+    include: {
+      OrderItems: true,
+    },
+  });
+
+  if (payment) {
+    await this.prisma.payment.create({
+      data: {
+        order_id: order.order_id,
+        payment_date: payment.payment_date,
+        amount: payment.amount,
+        payment_method: payment.payment_method,
+        status: payment.status,
+      },
+    });
+  }
+
+  return order;
+}
 }
 
  

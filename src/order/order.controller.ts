@@ -44,4 +44,9 @@ async createOrder(@Body() createOrderDto: CreateOrderDto) {
   async findOrdersByStatusId(@Param('statusId') statusId: number): Promise<Order[]> {
     return this.orderService.findOrdersByStatusId(statusId);
   }
+
+  @Post('payment')
+  async createOrderx(@Body() createOrderDto: CreateOrderDto) {
+    return this.orderService.createOrderx(createOrderDto);
+  }
 }

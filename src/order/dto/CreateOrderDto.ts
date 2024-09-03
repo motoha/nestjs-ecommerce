@@ -1,6 +1,7 @@
-import { IsInt, IsDate, IsString,  IsOptional, IsNumber, IsEnum } from 'class-validator';
+import { IsInt, IsDate, IsString,  IsOptional, IsNumber, IsEnum, IsArray } from 'class-validator';
 import { CreateOrderItemDto } from './CreateOrderItemDto';
 import { OrderStatus } from '@prisma/client';
+import { CreatePaymentDto } from './createPaymentDto';
 export class CreateOrderDto {
   @IsInt()
   user_id: number;
@@ -8,7 +9,9 @@ export class CreateOrderDto {
   @IsDate()
   order_date: Date;
 
- 
+  @IsOptional()
+  @IsInt()
+  status_id?: number;
 
   @IsEnum(OrderStatus)
   status: OrderStatus;
@@ -16,6 +19,12 @@ export class CreateOrderDto {
   @IsNumber()
   total_amount: number;
 
+  @IsArray()
+  orderItems: CreateOrderItemDto[];
+
   @IsOptional()
-  order_items?: CreateOrderItemDto[];
+  payment?: CreatePaymentDto;
+
+  // @IsOptional()
+  // order_items?: CreateOrderItemDto[];
 }
