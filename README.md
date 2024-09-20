@@ -1,4 +1,5 @@
 # NestJS ByDoing Application
+![My Project Logo](image.jpeg)
 
 > NestJS application with user and property CRUD operations
 
