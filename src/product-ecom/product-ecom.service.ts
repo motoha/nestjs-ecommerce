@@ -49,6 +49,7 @@ export class ProductEcomService {
             OrderItems: true,
             CartItems: true,
             Reviews: true,
+            ProductImage :true
           },
         });
     
@@ -189,6 +190,27 @@ export class ProductEcomService {
         // 3. Delete the image record from the database
         await this.databaseService.productImage.delete({
           where: { image_id: imageId },
+        });
+      }
+
+      async getProductsByCategory(categoryId: number) {
+        return this.databaseService.productEcom.findMany({
+          where: {
+            category_id: categoryId,
+          },
+          include: {
+            Category: true,
+            ProductImage: true,
+          },
+        });
+      }
+    
+      async getAllProductsWithCategories() {
+        return this.databaseService.productEcom.findMany({
+          include: {
+            Category: true,
+            ProductImage: true,
+          },
         });
       }
 }

@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards,Request, Param, Put, ParseIntPipe, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards,Request, Param, Put, ParseIntPipe, Query, UsePipes, Req } from '@nestjs/common';
 import { CreateOrderDto } from './dto/CreateOrderDto';
 import { OrderService } from './order.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { UpdateOrderDto } from './dto/UpdateOrderDto';
 import { Order, OrderStatus } from '@prisma/client';
 import { OrderStatusValidationPipe } from 'src/utils/CustomOrderStatusValidationPipe';
+import { CustomRequest } from 'src/utils/custom-request';
+ 
 
 @Controller('order')
 @UseGuards(AuthGuard)
@@ -25,8 +27,20 @@ async createOrder(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.updateOrder(parseInt(id), updateOrderDto);
   }
 
+  // @Get('user/:userId')
+  // async getOrdersByUserId(@Param('userId', ParseIntPipe) userId: number) {
+    
+  //   return this.orderService.getOrdersByUserId(userId);
+  // }
+
   @Get('user/:userId')
-  async getOrdersByUserId(@Param('userId', ParseIntPipe) userId: number) {
+  @UseGuards(AuthGuard)
+  async getOrdersByUserId(@Req() req: CustomRequest) {
+    // Use the user ID from the request object
+    const userId = req.userId;
+    console.log("User Id " + userId)
+
+    // Get orders by user ID from the service
     return this.orderService.getOrdersByUserId(userId);
   }
   @Get(':orderId')

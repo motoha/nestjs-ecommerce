@@ -23,7 +23,7 @@ import { CreateProductEcomDto } from './dto/product-ecom';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/utils/multer-config';
- 
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('product')
 @UseGuards(AuthGuard)
@@ -122,6 +122,29 @@ export class ProductEcomController {
   ) {
     return this.productEcomService.updateProductWithImages(parseInt(id), updateProductDto, files);
   }
+
+  @Get('/category/:categoryId')
+  @ApiOperation({ summary: 'Get products by category ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Returns all products in the specified category' 
+  })
+  async getProductsByCategory(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+  ) {
+    return this.productEcomService.getProductsByCategory(categoryId);
+  }
+
+  @Get('category/all')
+  @ApiOperation({ summary: 'Get all products with their categories' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Returns all products with category information' 
+  })
+  async getAllProducts() {
+    return this.productEcomService.getAllProductsWithCategories();
+  }
+
 }
 
 // use case
