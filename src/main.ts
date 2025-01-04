@@ -27,7 +27,7 @@ const document = SwaggerModule.createDocument(app, config);
 SwaggerModule.setup('api', app, document);
 
   app.enableCors({
-    origin: ['http://localhost:4200', 'http://localhost:4300', 'http://localhost','http://localhost:57146/'],
+    origin: ['http://localhost:4200', 'http://localhost:4300', 'http://103.84.207.138:4000','http://localhost:57146/'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // enable credentials (if your API uses cookies or authentication)
   });
