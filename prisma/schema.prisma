@@ -72,6 +72,7 @@ model ProductImage {
   updated_at  DateTime @updatedAt
   Product     ProductEcom @relation(fields: [product_id], references: [product_id])
 }
+
 model ProductEcom {
   product_id    Int        @id @default(autoincrement())
   name          String
@@ -88,7 +89,54 @@ model ProductEcom {
   
 
   ProductImage ProductImage[]
+  Brand           Brand?       @relation(fields: [brand_id], references: [brand_id])
+  brand_id        Int?
+  Colors          ProductColor[]
+  Sizes           ProductSize[]
 }
+
+model Color {
+  color_id    Int          @id @default(autoincrement())
+  name        String
+  products    ProductColor[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+}
+
+model Brand {
+  brand_id    Int          @id @default(autoincrement())
+  name        String
+  products    ProductEcom[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+}
+
+model Size {
+  size_id     Int          @id @default(autoincrement())
+  name        String
+  products    ProductSize[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+}
+
+model ProductColor {
+  product_id  Int
+  color_id    Int
+  Product     ProductEcom  @relation(fields: [product_id], references: [product_id])
+  Color       Color        @relation(fields: [color_id], references: [color_id])
+
+  @@id([product_id, color_id])
+}
+
+model ProductSize {
+  product_id  Int
+  size_id     Int
+  Product     ProductEcom  @relation(fields: [product_id], references: [product_id])
+  Size        Size         @relation(fields: [size_id], references: [size_id])
+
+  @@id([product_id, size_id])
+}
+
 
 model Category {
   category_id  Int        @id @default(autoincrement())

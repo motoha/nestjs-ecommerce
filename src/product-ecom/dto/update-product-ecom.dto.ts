@@ -1,5 +1,5 @@
 // src/product-ecom/dto/update-product-ecom.dto.ts
-import { IsInt, IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
 
 export class UpdateProductEcomDto {
   @IsString()
@@ -21,4 +21,17 @@ export class UpdateProductEcomDto {
   @IsInt()
   @IsOptional()
   category_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  brand_id?: number;
+
+  @IsOptional()
+  @IsArray()
+  color_ids?: number[];
+
+  @IsOptional()
+  @IsArray()
+  size_ids?: number[];
 }
+ 
