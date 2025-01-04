@@ -53,7 +53,6 @@ export class OrderService {
       order_items: createdOrderItems,
     };
   }
-
   async getUserOrders(userId: number): Promise<any> {
     return this.prisma.order.findMany({
       where: { user_id: userId },

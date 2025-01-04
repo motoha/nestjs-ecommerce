@@ -323,7 +323,8 @@ export class ProductEcomService {
         files: Express.Multer.File[],
       ): Promise<any> {
         const { brand_id, category_id, color_ids, size_ids, ...productData } = updateProductDto;
-      
+        const numericColorIds = color_ids?.map((id) => Number(id)) || [];
+        const numericSizeIds = size_ids?.map((id) => Number(id)) || [];
         // Update product details with relations
         const product = await this.databaseService.productEcom.update({
           where: { product_id: productId },
@@ -349,7 +350,7 @@ export class ProductEcomService {
       
           // Add new colors
           await Promise.all(
-            color_ids.map((colorId) =>
+            numericColorIds.map((colorId) =>
               this.databaseService.productColor.create({
                 data: {
                   product_id: productId,
@@ -369,7 +370,7 @@ export class ProductEcomService {
       
           // Add new sizes
           await Promise.all(
-            size_ids.map((sizeId) =>
+            numericSizeIds.map((sizeId) =>
               this.databaseService.productSize.create({
                 data: {
                   product_id: productId,

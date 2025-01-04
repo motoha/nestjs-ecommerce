@@ -21,6 +21,7 @@ export class CreateOrderDto {
 
   @IsArray()
   orderItems: CreateOrderItemDto[];
+  
 
   @IsOptional()
   payment?: CreatePaymentDto;
