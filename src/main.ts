@@ -5,6 +5,7 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { ErrorMiddleware } from './middlewares/error.middleware';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as express from 'express';
+import * as path from 'path'; // Importing the path module
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
@@ -16,7 +17,9 @@ const bootstrap = async () => {
       },
     }),
   );
-  app.use('/uploads', express.static('uploads'));
+  // app.use('/uploads', express.static('uploads'));
+  app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
   const config = new DocumentBuilder()
   .setTitle('My API')
   .setDescription('API description')
